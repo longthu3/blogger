@@ -240,7 +240,7 @@ const render = async () => {
                             <label for="exampleInputPassword1" class="form-label">Password</label>
                             <input name="password" type="password" class="form-control w-100" id="exampleInputPasswordRegister">
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Submit</button>
+                        <button id="btn-register" type="submit" class="btn btn-primary w-100">Submit</button>
 
                         <div class="mt-3" id="swap-login">
                             Already have account? <span
