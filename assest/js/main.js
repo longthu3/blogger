@@ -10,7 +10,7 @@ const sendLogin = async (data) => {
             },
             body: JSON.stringify(data)
         });
-        return await response.json();
+        return response.json();
     } catch (error) {
         console.error(error);
     }
@@ -25,7 +25,7 @@ const sendRegister = async (data) => {
             },
             body: JSON.stringify(data)
         });
-        return await response.json();
+        return response.json();
     } catch (error) {
         console.error(error);
     }
