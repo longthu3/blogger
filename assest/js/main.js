@@ -101,8 +101,10 @@ const addEventListeners = () => {
             const { email, password } = getValueOfForm(event);
             const name = email.split("@")[0];
 
+            loading('btn-register');
             const response = await sendRegister({ email, password, name });
-            console.log(response);
+            removeLoading('btn-register');
+
             if (response && response.code === 400) {
                 document.getElementById("noti-err").innerText = response.message;
                 showNotification('error');
