@@ -1,6 +1,8 @@
 import API_URL from "./constant/api.js";
 import * as utils from './utils/index.js';
 
+let page = 1;
+
 const sendLogin = async (data) => {
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
@@ -30,6 +32,15 @@ const sendRegister = async (data) => {
         console.error(error);
     }
 }
+
+const onScroll = () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        window.removeEventListener('scroll', onScroll);
+        page++;
+        fetchMoreBlogs(page);
+    }
+};
+
 
 const getValueOfForm = (event) => {
     return event && Object.fromEntries([...new FormData(event.target)]);
@@ -143,8 +154,8 @@ const getUser = async (accessToken) => {
     return response.json();
 }
 
-const getBlogs = async () => {
-    const response = await fetch(`${API_URL}/blogs`, {
+const getBlogs = async (page) => {
+    const response = await fetch(`${API_URL}/blogs?page=${page}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -179,6 +190,51 @@ const logout = () => {
     localStorage.removeItem('accessToken');
     window.location.reload();
 }
+
+const renderBlogs = async (blogs) => {
+    const totalPostDiv = document.getElementById('total-post');
+    const avatarDefault = 'https://th.bing.com/th/id/OIP.52T8HHBWh6b0dwrG6tSpVQHaFe?rs=1&pid=ImgDetMain';
+
+    blogs.forEach((blog) => {
+        const post = document.createElement('div');
+        post.className = 'post';
+        post.innerHTML = `
+            <div style="padding: 10px;">
+                <div class="user-info-post-top">
+                    <div class="user-info-post">
+                        <img style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;"
+                            src="${avatarDefault}" alt="logo-f8">
+                        <span style="font-size: 17px;">${blog.userId.name}</span>
+                    </div>
+                    <span class="time-ago" style="color: #5585b5">
+                        ${utils.timeAgo(blog.createdAt)}
+                    </span>
+                </div>
+                <div class="user-content-post">
+                    <h4>${blog.title}</h4>
+                    <p>${blog.content}</p>
+                    ${extractVideoId(blog.content) ?
+                `<div>
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/${extractVideoId(blog.content)}" frameborder="0" allowfullscreen></iframe>
+                        </div>` : ''
+            }
+                </div>
+            </div>
+            <div style="margin: 0 10px 10px 0; text-align: end; color: #5585b5">
+                ${utils.getDMY(blog.createdAt)}
+            </div>
+        `;
+        totalPostDiv.appendChild(post);
+    });
+
+    window.addEventListener('scroll', onScroll); // Add scroll event listener back after fetching
+};
+
+const fetchMoreBlogs = async (page) => {
+    const resGetBlogs = await getBlogs(page);
+    const blogs = resGetBlogs.data;
+    renderBlogs(blogs);
+};
 
 /**
  * RENDER FUNCTION
@@ -261,7 +317,7 @@ const render = async () => {
         const user = res.data;
         const avatarDefault = 'https://th.bing.com/th/id/OIP.52T8HHBWh6b0dwrG6tSpVQHaFe?rs=1&pid=ImgDetMain';
 
-        let post = `
+        document.getElementsByTagName('body')[0].innerHTML = `
         <div class="header">
             <div id="logo" style="cursor: pointer;">
                 <img src="https://fullstack-nodejs.fullstack.edu.vn/assets/f8_icon.png" alt="logo-f8">
@@ -316,45 +372,15 @@ const render = async () => {
                     </div>
                 <!-- END Modal -->
             </div>
-            
+        <div id="total-post">    
+        </div>
+        </div>
         `;
 
-        const resGetBlogs = await getBlogs();
+        const resGetBlogs = await getBlogs(page);
         const blogs = resGetBlogs.data;
 
-        blogs.map((blog) => {
-            post += `
-                <div class="post">
-                    <div style="padding: 10px;">
-                        <div class="user-info-post-top">
-                            <div class="user-info-post">
-                                <img style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;"
-                                    src="${avatarDefault}" alt="logo-f8">
-                                <span style="font-size: 17px;">${blog.userId.name}</span>
-                            </div>
-                            <span class="time-ago" style="color: #5585b5">
-                                ${utils.timeAgo(blog.createdAt)}
-                            </span>
-                        </div>
-                        <div class="user-content-post">
-                            <h4>${blog.title}</h4>
-                            <p>${blog.content}</p>
-                ${extractVideoId(blog.content) ?
-                    `<div>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/${extractVideoId(blog.content)}" frameborder="0" allowfullscreen></iframe>
-                    </div>` : ''
-                }
-                        </div>
-                    </div>
-                    <div style="margin: 0 10px 10px 0; text-align: end; color: #5585b5">
-                        ${utils.getDMY(blog.createdAt)}
-                    </div>
-                </div>
-            `;
-        });
-        post += `</div>`;
-
-        document.getElementsByTagName('body')[0].innerHTML = post;
+        renderBlogs(blogs); // Render initial blogs
 
         const logo = document.getElementById('logo');
         const btnPost = document.getElementById("btn-post");

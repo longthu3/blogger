@@ -5,25 +5,25 @@ export function timeAgo(dateString) {
 
     let interval = Math.floor(seconds / 31536000);
     if (interval >= 1) {
-        return interval === 1 ? "1 year ago" : `${interval} years ago`;
+        return interval === 1 ? "1 năm trước" : `${interval} năm trước`;
     }
     interval = Math.floor(seconds / 2592000);
     if (interval >= 1) {
-        return interval === 1 ? "1 month ago" : `${interval} months ago`;
+        return interval === 1 ? "1 tháng trước" : `${interval} tháng trước`;
     }
     interval = Math.floor(seconds / 86400);
     if (interval >= 1) {
-        return interval === 1 ? "1 day ago" : `${interval} days ago`;
+        return interval === 1 ? "1 ngày trước" : `${interval} ngày trước`;
     }
     interval = Math.floor(seconds / 3600);
     if (interval >= 1) {
-        return interval === 1 ? "1 hour ago" : `${interval} hours ago`;
+        return interval === 1 ? "1 giờ trước" : `${interval} giờ trước`;
     }
     interval = Math.floor(seconds / 60);
     if (interval >= 1) {
-        return interval === 1 ? "1 minute ago" : `${interval} minutes ago`;
+        return interval === 1 ? "1 phút trước" : `${interval} phút trước`;
     }
-    return seconds <= 1 ? "just now" : `${seconds} seconds ago`;
+    return seconds <= 1 ? "bây giờ" : `${seconds} giây trước`;
 }
 
 export function getDMY(dateString) {
