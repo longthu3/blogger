@@ -195,6 +195,7 @@ const renderBlogs = async (blogs) => {
     const totalPostDiv = document.getElementById('total-post');
     const avatarDefault = 'https://th.bing.com/th/id/OIP.52T8HHBWh6b0dwrG6tSpVQHaFe?rs=1&pid=ImgDetMain';
 
+
     blogs.forEach((blog) => {
         const post = document.createElement('div');
         post.className = 'post';
@@ -235,6 +236,18 @@ const fetchMoreBlogs = async (page) => {
     const blogs = resGetBlogs.data;
     renderBlogs(blogs);
 };
+
+const refreshToken = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await fetch(`${API_URL}/auth/refresh-token`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: `refreshToken: ${accessToken}`
+    });
+    return response.json();
+}
 
 /**
  * RENDER FUNCTION
@@ -343,6 +356,8 @@ const render = async () => {
                         <span>${user.name} ơi, bạn đang nghĩ gì vậy ?</span>
                     </div>
 
+                    
+
                     <!-- Modal -->
                     <div class="modal fade" id="statusPopup" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
                         aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -361,6 +376,11 @@ const render = async () => {
                                     <span class="label-post">Nội dung</span>
                                     <div contenteditable="" class="create-post">
 
+                                    </div>
+
+                                    <span>Date picker</span>
+                                     <div>
+                                        <input id="date-picker" type="date">
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -386,6 +406,7 @@ const render = async () => {
         const btnPost = document.getElementById("btn-post");
         const userPostInput = document.querySelector('.create-post');
         const userTitleInput = document.querySelector('.create-title');
+        const datePicker = document.getElementById('date-picker');
         const btnLogout = document.getElementById('btn-logout');
 
         if (logo) {
@@ -404,15 +425,30 @@ const render = async () => {
             btnPost.addEventListener('click', async () => {
                 const content = userPostInput.innerText;
                 const title = userTitleInput.innerText;
+                const date = datePicker.value;
 
                 if (!content || !title) {
                     alert('Content and title are required');
                     return;
                 }
 
+                if (date) {
+                    if (!utils.isValidDate(date)) {
+                        alert('Invalid date');
+                        return;
+                    }
+                    alert(utils.calculateDifference(date));
+                }
+
                 loading('btn-post');
                 const response = await postBlog(accessToken, { title, content });
                 removeLoading('btn-post');
+
+                if (response && response.code === 401) {
+                    const token = await refreshToken();
+                    localStorage.setItem('accessToken', token.accessToken);
+                    logout();
+                }
 
                 if (response && response.code === 200) {
                     window.location.reload();
